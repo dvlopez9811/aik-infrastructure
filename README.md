@@ -18,7 +18,7 @@ Andres Varela - @dvlopez9811
 
 ## Diagrama de la solución
 
-![Diseno Solucion](/images/diagramadelasolucion.png)
+![Diagrama Solucion](/images/diagramadelasolucion.png)
 
 
 
