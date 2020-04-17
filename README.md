@@ -30,7 +30,7 @@ Andres Varela - @dvlopez9811
 
 ## Diagrama de la solución
 
-![Diagrama Solucion](/images/diagramadelasolucion.png)
+![Diagrama Solucion](/images/diagramasolucion.png)
 
 
 
