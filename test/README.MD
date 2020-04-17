@@ -48,8 +48,7 @@
 | - | - |
 | Propósito de la prueba | Probar que el servicio NODEJS ejecuta correctamente los archivos de frontend y backend |
 | Pre-condiciones | La instancia EC2 debe haberse creado. El servicio de NODEJS debe haberse instalado. El servicio NPM debe haberse instalado. El servicio NPM debe haber instalado todas las dependencias necesarias |
-| Forma de comprobación | Verificación por medio de script de extensión .rb, donde se debe verificar que el servicio está ejecutándose en el puerto 3030 y en el 3000.
- |
+| Forma de comprobación | Verificación por medio de script de extensión .rb, donde se debe verificar que el servicio está ejecutándose en el puerto 3030 y en el 3000.|
 
 ### Test #6
 
