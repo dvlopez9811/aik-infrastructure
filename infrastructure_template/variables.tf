@@ -3,23 +3,23 @@ variable "vpc-cidr" {
 }
 
 variable "vpc-name" {
-    default = "aik-vpc-RicardoSebastianAndres"
+    default = "automatizacion-aik-vpc-RicardoSebastianAndres"
 }
 
 variable "rtb-name" {
-    default = "aik-rtb-RicardoSebastianAndres"
+    default = "automatizacion-aik-rtb-RicardoSebastianAndres"
 }
 
 variable "aws-availability-zones" {
-    default = "us-east-1a,us-east-1b"
+    default = "us-west-2a,us-west-2b"
 }
 
 variable "subnet-name" {
-    default = "aik-subnet-RicardoSebastianAndres"
+    default = "automatizacion-aik-subnet-RicardoSebastianAndres"
 }
 
 variable "rtb-association-name" {
-    default = "aik-rtb-association-RicardoSebastianAndres"
+    default = "automatizacion-aik-rtb-association-RicardoSebastianAndres"
 }
 
 variable "sg-front-end" {
@@ -55,10 +55,9 @@ variable "db-subnetgroup-name" {
 }
 
 variable "aik-key-name" {
-    default = "devops-RicardoSebastianAndres"
+    default = "automatizacion-devops-RicardoSebastianAndres"
 }
 
 variable "aik-back-end-instance-name" {
-    default = "aik-back-end-instance-RicardoSebastianAndres"
+    default = "automatizacion-aik-back-end-instance-RicardoSebastianAndres"
 }
-
