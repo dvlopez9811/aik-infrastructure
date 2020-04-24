@@ -5,6 +5,7 @@ provider "aws" {
 #Create aik vpc
 resource "aws_vpc" "aik-vpc" {
     cidr_block = "${var.vpc-cidr}"
+    
     tags {
         Name = "${var.vpc-name}"
     }
@@ -13,6 +14,10 @@ resource "aws_vpc" "aik-vpc" {
 #Create aik internet gateway
 resource "aws_internet_gateway" "aik-igw" {
   vpc_id = "${aws_vpc.aik-vpc.id}"
+
+  tags {
+      Name = "${var.igw-name}"
+  }
 }
 
 #Create aik route table
@@ -33,7 +38,8 @@ resource "aws_route_table" "rtb-public" {
 resource "aws_subnet" "aik-public-subnet" {
     vpc_id                  = "${aws_vpc.aik-vpc.id}"
     cidr_block              = "${cidrsubnet(var.vpc-cidr, 8, 1)}"
-    availability_zone       = "${element(split(",", var.aws-availability-zones), count.index)}"
+    cidr_block              = "10.0.1.0/24"
+    availability_zone       = "us-west-2a"
     map_public_ip_on_launch = true
 
     tags {
@@ -73,6 +79,10 @@ resource "aws_security_group" "aik-sg-front-end" {
         protocol    = "-1"
         cidr_blocks = ["0.0.0.0/0"]
     }
+
+    tags {
+        Name = "${var.sg-name}"
+    }
 }
 
 #Create aik back-end security group
@@ -101,6 +111,10 @@ resource "aws_security_group" "aik-sg-back-end" {
         protocol    = "-1"
         cidr_blocks = ["0.0.0.0/0"]
     }
+
+    tags {
+        Name = "${var.sg-name}"
+    }
 }
 
 #Create aik elastic load balancer
@@ -109,6 +123,7 @@ resource "aws_elb" "aik-elb" {
     security_groups = ["${aws_security_group.aik-sg-front-end.id}"]
     subnets         = ["${aws_subnet.aik-public-subnet.id}"]
 
+    /*
     health_check {
         healthy_threshold   = 2
         unhealthy_threshold = 2
@@ -116,12 +131,17 @@ resource "aws_elb" "aik-elb" {
         interval            = 30
         target              = "HTTP:3030/"
     }
-
+    */
+    
     listener{
         lb_port             = 3030
         lb_protocol         = "tcp"
         instance_port       = 3030
         instance_protocol   = "tcp"
+    }
+
+    tags {
+        Name = "${var.elb-tag-name}"
     }
 }
 
@@ -130,13 +150,15 @@ resource "aws_launch_configuration" "aik-launch-configuration" {
     image_id        = "${var.aik-ami-id}"
     instance_type   = "${var.aik-instance-type}"
     security_groups = ["${aws_security_group.aik-sg-front-end.id}"]
+    key_name        = "${var.aik-key-name}"
+    name = "${var.aik-front-end-instance-name}" 
 
     user_data = <<EOF
         #!/bin/bash
         sudo yum update -y
         sudo yum install -y git 
         #Clone salt repo
-        git clone https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
+        git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
         #Install Salstack
         sudo yum install -y https://repo.saltstack.com/yum/redhat/salt-repo-latest.el7.noarch.rpm
         sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
@@ -147,20 +169,28 @@ resource "aws_launch_configuration" "aik-launch-configuration" {
         sudo salt-call state.apply
         EOF
 
-        lifecycle {
-            create_before_destroy = true
-        }
+    lifecycle {
+        create_before_destroy = true
+    }
 }
 
 #Create aik autoscaling group
 resource "aws_autoscaling_group" "aik-asg" {
     launch_configuration    = "${aws_launch_configuration.aik-launch-configuration.id}"
     availability_zones      = ["${var.aws-availability-zones}"]
-
+    vpc_zone_identifier    = ["${aws_subnet.aik-public-subnet.id}"]
     health_check_type = "ELB"
 
     min_size = "${var.min-size}"
     max_size = "${var.max-size}"
+
+    lifecycle {
+        create_before_destroy = true
+    }
+
+    tags {
+        Name = "${var.aik-asg-name}"
+    }
 }
 
 #Create aik back-end ec2 instance
@@ -171,6 +201,7 @@ resource "aws_instance" "aik-portal" {
   key_name               = "${var.aik-key-name}"
   vpc_security_group_ids = ["${aws_security_group.aik-sg-back-end.id}"]
   subnet_id              = "${aws_subnet.aik-public-subnet.id}"
+  
   tags {
       Name = "${var.aik-back-end-instance-name}" 
   }
@@ -180,7 +211,7 @@ resource "aws_instance" "aik-portal" {
         sudo yum update -y
         sudo yum install -y git 
         #Clone salt repo
-        git clone https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
+        git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
         #Install Salstack
         sudo yum install -y https://repo.saltstack.com/yum/redhat/salt-repo-latest.el7.noarch.rpm
         sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
@@ -192,7 +223,6 @@ resource "aws_instance" "aik-portal" {
         EOF
 
 }
-
 
 #Create aik database
 resource "aws_db_instance" "aik-db" {
@@ -206,9 +236,31 @@ resource "aws_db_instance" "aik-db" {
     password             = "password"   
     parameter_group_name = "default.mysql5.7"   
     db_subnet_group_name   = "${aws_db_subnet_group.aik-db-subnet-group.id}" 
+    skip_final_snapshot       = true
+
+    tags {
+        Name = "${var.aik-db-name}"
+    }
 }
 
 resource "aws_db_subnet_group" "aik-db-subnet-group" {   
     name        = "${var.db-subnetgroup-name}"     
-    subnet_ids  = ["${aws_subnet.aik-public-subnet.id}"] 
+    subnet_ids  = ["${aws_subnet.aik-public-subnet.id}","${aws_subnet.aik-second-public-subnet.id}"] 
+
+    tags {
+        Name = "automatizacion-db-subnet-group-RicardoSebastianAndres"
+    }
+}
+
+
+#Create second aik subnet
+resource "aws_subnet" "aik-second-public-subnet" {
+    vpc_id                  = "${aws_vpc.aik-vpc.id}"
+    cidr_block              = "${cidrsubnet(var.vpc-cidr, 8, 5)}"
+    availability_zone       = "us-west-2b"
+    map_public_ip_on_launch = true
+
+    tags {
+        Name = "${var.second-subnet-name}"
+    }
 }

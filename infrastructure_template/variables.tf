@@ -3,6 +3,10 @@ variable "vpc-cidr" {
 }
 
 variable "vpc-name" {
+    default = "automatizacion-igw-name-RicardoSebastianAndres"
+}
+
+variable "igw-name" {
     default = "automatizacion-aik-vpc-RicardoSebastianAndres"
 }
 
@@ -11,15 +15,23 @@ variable "rtb-name" {
 }
 
 variable "aws-availability-zones" {
-    default = "us-west-2a,us-west-2b"
+    default = ["us-west-2a","us-west-2b"]
 }
 
 variable "subnet-name" {
     default = "automatizacion-aik-subnet-RicardoSebastianAndres"
 }
 
+variable "second-subnet-name" {
+    default = "automatizacion-aik-second-subnet-RicardoSebastianAndres"
+}
+
 variable "rtb-association-name" {
     default = "automatizacion-aik-rtb-association-RicardoSebastianAndres"
+}
+
+variable "sg-name" {
+    default = "automatizacion-aik-sg-RicardoSebastianAndres"
 }
 
 variable "sg-front-end" {
@@ -34,8 +46,13 @@ variable "elb-name" {
     default = "aik-elb"
 }
 
+variable "elb-tag-name" {
+    default = "automatizacion-aik-elb-RicardoSebastianAndres"
+}
+
+
 variable "aik-ami-id" {
-    default = "ami-0fc61db8544a617ed" 
+    default = "ami-a0cfeed8" 
 }
 
 variable "aik-instance-type" {
@@ -58,6 +75,18 @@ variable "aik-key-name" {
     default = "automatizacion-devops-RicardoSebastianAndres"
 }
 
+variable "aik-front-end-instance-name" {
+    default = "automatizacion-aik-front-end-instance-RicardoSebastianAndres"
+}
+
 variable "aik-back-end-instance-name" {
     default = "automatizacion-aik-back-end-instance-RicardoSebastianAndres"
+}
+
+variable "aik-db-name" {
+    default = "automatizacion-db-RicardoSebastianAndres"
+}
+
+variable "aik-asg-name" {
+    default = "automatizacion-asg-RicardoSebastianAndres"
 }
