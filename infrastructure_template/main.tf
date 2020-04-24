@@ -158,7 +158,7 @@ resource "aws_launch_configuration" "aik-launch-configuration" {
         sudo yum update -y
         sudo yum install -y git 
         #Clone salt repo
-        git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
+        git clone -b feature/cm https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
         #Install Salstack
         sudo yum install -y https://repo.saltstack.com/yum/redhat/salt-repo-latest.el7.noarch.rpm
         sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
@@ -188,9 +188,6 @@ resource "aws_autoscaling_group" "aik-asg" {
         create_before_destroy = true
     }
 
-    tags {
-        Name = "${var.aik-asg-name}"
-    }
 }
 
 #Create aik back-end ec2 instance
@@ -211,7 +208,7 @@ resource "aws_instance" "aik-portal" {
         sudo yum update -y
         sudo yum install -y git 
         #Clone salt repo
-        git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
+        git clone -b feature/cm https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
         #Install Salstack
         sudo yum install -y https://repo.saltstack.com/yum/redhat/salt-repo-latest.el7.noarch.rpm
         sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
