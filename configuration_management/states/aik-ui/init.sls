@@ -8,7 +8,7 @@ aik-ui:
      - name: https://github.com/dvlopez9811/aik-portal-frontend
      - target: /srv/app
     require:
-     -pgk: git
+     - pgk: git
 
 install_npm_dependencies:
     npm.bootstrap:

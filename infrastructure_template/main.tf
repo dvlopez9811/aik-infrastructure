@@ -164,7 +164,7 @@ resource "aws_launch_configuration" "aik-launch-configuration" {
         sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
         #Put custom minion config in place (for enabling masterless mode)
         sudo cp -r /srv/aik-infrastructure/configuration_management/minion.d /etc/salt/
-        echo -e 'grains:\n roles:\n  - frontend' > /etc/salt/minion.d/grains.conf
+        echo -e 'grains:\n roles:\n  - frontend' | sudo tee /etc/salt/minion.d/grains.conf
         ## Trigger a full Salt run
         sudo salt-call state.apply
         EOF
@@ -214,7 +214,7 @@ resource "aws_instance" "aik-portal" {
         sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
         #Put custom minion config in place (for enabling masterless mode)
         sudo cp -r /srv/aik-infrastructure/configuration_management/minion.d /etc/salt/
-        echo -e 'grains:\n roles:\n  - backend' > /etc/salt/minion.d/grains.conf
+        echo -e 'grains:\n roles:\n  - backend' | sudo tee /etc/salt/minion.d/grains.conf
         ## Trigger a full Salt run
         sudo salt-call state.apply
         EOF

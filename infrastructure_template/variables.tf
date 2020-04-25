@@ -52,7 +52,7 @@ variable "elb-tag-name" {
 
 
 variable "aik-ami-id" {
-    default = "ami-a0cfeed8" 
+    default = "ami-0d6621c01e8c2de2c" 
 }
 
 variable "aik-instance-type" {
