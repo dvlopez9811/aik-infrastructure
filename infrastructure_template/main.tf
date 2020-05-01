@@ -128,34 +128,54 @@ resource "aws_security_group" "aik-sg-back-end" {
     }
 }
 
-#Create AIK Launch Configuration for AIK front-end instance
-resource "aws_launch_configuration" "aik-launch-configuration" {
-    name            = "${var.aik-front-end-instance-name}" 
-    image_id        = "${var.aik-ami-id}"
-    instance_type   = "${var.aik-instance-type}"
-    security_groups = ["${aws_security_group.aik-sg-front-end.id}"]
-    key_name        = "${var.aik-key-name}"
-    
-    user_data = <<EOF
-        #!/bin/bash
-        sudo yum update -y
-        sudo yum install -y git 
-        #Clone salt repo
-        git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
-        #Install Salstack
-        sudo yum install -y https://repo.saltstack.com/yum/redhat/salt-repo-latest.el7.noarch.rpm
-        sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
-        #Put custom minion config in place (for enabling masterless mode)
-        sudo cp -r /srv/aik-infrastructure/configuration_management/minion.d /etc/salt/
-        echo -e 'grains:\n roles:\n  - frontend' | sudo tee /etc/salt/minion.d/grains.conf
-        ## Trigger a full Salt run
-        sudo salt-call state.apply
-        EOF
+#Create AIK Database
 
-    lifecycle {
-        create_before_destroy = true
+#Create Subnet Group for AIK Database
+resource "aws_db_subnet_group" "aik-rds-private-subnet" {
+    name        = "${var.db-subnetgroup-name}"
+    subnet_ids  = ["${aws_subnet.aik-public-subnet.id}","${aws_subnet.aik-second-public-subnet.id}"]
+    
+    tags {
+        Name = "${var.aik-subnet-rds-name}"
+    }
+}
+
+#Create Security Group for AIK Database
+resource "aws_security_group" "rds-sg" {
+    name    = "${var.rds-security-group-name}"
+    vpc_id  = "${aws_vpc.aik-vpc.id}"
+
+    # Allow inbound requests
+    ingress {
+        from_port   = 3306
+        to_port     = 3306
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
     }
 
+    tags {
+        Name = "${var.sg-rds-tag-name}"
+    }
+}
+
+# Create AIK Database
+resource "aws_db_instance" "aik-db" {
+    allocated_storage       = 20   
+    storage_type            = "gp2"   
+    engine                  = "${var.rds-engine}"   
+    engine_version          = "${var.rds-engine-version}"   
+    instance_class          = "${var.rds-instance-class}"   
+    name                    = "${var.rds-name}"   
+    username                = "${var.rds-username}"   
+    password                = "${var.rds-password}"   
+    parameter_group_name    = "default.mysql5.7"   
+    db_subnet_group_name    = "${aws_db_subnet_group.aik-rds-private-subnet.id}" 
+    vpc_security_group_ids  = ["${aws_security_group.rds-sg.id}"]
+    skip_final_snapshot     = true
+
+    tags {
+        Name = "${var.aik-db-name}"
+    }
 }
 
 #Create AIK back-end EC2 instance
@@ -177,6 +197,7 @@ resource "aws_instance" "aik-portal" {
         sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
         #Put custom minion config in place (for enabling masterless mode)
         sudo cp -r /srv/aik-infrastructure/configuration_management/minion.d /etc/salt/
+        sudo sh -c "echo export ENDPOINT=${aws_db_instance.aik-db.endpoint} >> /etc/profile"
         echo -e 'grains:\n roles:\n  - backend' | sudo tee /etc/salt/minion.d/grains.conf
         ## Trigger a full Salt run
         sudo salt-call state.apply
@@ -185,6 +206,37 @@ resource "aws_instance" "aik-portal" {
     tags {
       Name = "${var.aik-back-end-instance-name}" 
     }
+}
+
+#Create AIK Launch Configuration for AIK front-end instance
+resource "aws_launch_configuration" "aik-launch-configuration" {
+    name            = "${var.aik-front-end-instance-name}" 
+    image_id        = "${var.aik-ami-id}"
+    instance_type   = "${var.aik-instance-type}"
+    security_groups = ["${aws_security_group.aik-sg-front-end.id}"]
+    key_name        = "${var.aik-key-name}"
+    
+    user_data = <<EOF
+        #!/bin/bash
+        sudo yum update -y
+        sudo yum install -y git 
+        #Clone salt repo
+        git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
+        #Install Salstack
+        sudo yum install -y https://repo.saltstack.com/yum/redhat/salt-repo-latest.el7.noarch.rpm
+        sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
+        #Put custom minion config in place (for enabling masterless mode)
+        sudo cp -r /srv/aik-infrastructure/configuration_management/minion.d /etc/salt/
+        sudo sh -c "echo export BACK-END-IP=${aws_instance.aik-portal.private_ip} >> /etc/profile"
+        echo -e 'grains:\n roles:\n  - frontend' | sudo tee /etc/salt/minion.d/grains.conf
+        ## Trigger a full Salt run
+        sudo salt-call state.apply
+        EOF
+
+    lifecycle {
+        create_before_destroy = true
+    }
+
 }
 
 #Create AIK Application Load Balancer
@@ -301,55 +353,5 @@ resource "aws_autoscaling_group" "aik-asg" {
 
     tags {
         Name = "${var.aik-asg-name}"
-    }
-}
-
-#Create AIK Database
-
-#Create Subnet Group for AIK Database
-resource "aws_db_subnet_group" "aik-rds-private-subnet" {
-    name        = "${var.db-subnetgroup-name}"
-    subnet_ids  = ["${aws_subnet.aik-public-subnet.id}","${aws_subnet.aik-second-public-subnet.id}"]
-    
-    tags {
-        Name = "${var.aik-subnet-rds-name}"
-    }
-}
-
-#Create Security Group for AIK Database
-resource "aws_security_group" "rds-sg" {
-    name    = "${var.rds-security-group-name}"
-    vpc_id  = "${aws_vpc.aik-vpc.id}"
-
-    # Allow inbound requests
-    ingress {
-        from_port   = 3306
-        to_port     = 3306
-        protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-
-    tags {
-        Name = "${var.sg-rds-tag-name}"
-    }
-}
-
-# Create AIK Database
-resource "aws_db_instance" "aik-db" {
-    allocated_storage       = 20   
-    storage_type            = "gp2"   
-    engine                  = "${var.rds-engine}"   
-    engine_version          = "${var.rds-engine-version}"   
-    instance_class          = "${var.rds-instance-class}"   
-    name                    = "${var.rds-name}"   
-    username                = "${var.rds-username}"   
-    password                = "${var.rds-password}"   
-    parameter_group_name    = "default.mysql5.7"   
-    db_subnet_group_name    = "${aws_db_subnet_group.aik-rds-private-subnet.id}" 
-    vpc_security_group_ids  = ["${aws_security_group.rds-sg}"]
-    skip_final_snapshot     = true
-
-    tags {
-        Name = "${var.aik-db-name}"
     }
 }
