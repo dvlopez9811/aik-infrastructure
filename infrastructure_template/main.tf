@@ -197,7 +197,7 @@ resource "aws_instance" "aik-portal" {
         sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
         #Put custom minion config in place (for enabling masterless mode)
         sudo cp -r /srv/aik-infrastructure/configuration_management/minion.d /etc/salt/
-        sudo sh -c "echo export ENDPOINT=${aws_db_instance.aik-db.endpoint} >> /etc/profile"
+        sudo sh -c "echo export ENDPOINT=${element(split(":",aws_db_instance.aik-db.endpoint), 0)} >> /etc/profile"
         echo -e 'grains:\n roles:\n  - backend' | sudo tee /etc/salt/minion.d/grains.conf
         ## Trigger a full Salt run
         sudo salt-call state.apply
@@ -208,6 +208,36 @@ resource "aws_instance" "aik-portal" {
     }
 }
 
+#Create AIK front-end EC2 instance
+resource "aws_instance" "aik-front" {
+    ami                    = "${var.aik-ami-id}"
+    instance_type          = "${var.aik-instance-type}"
+    key_name               = "${var.aik-key-name}"
+    vpc_security_group_ids = ["${aws_security_group.aik-sg-front-end.id}"]
+    subnet_id              = "${aws_subnet.aik-public-subnet.id}"
+    
+    user_data = <<EOF
+        #!/bin/bash
+        sudo yum update -y
+        sudo yum install -y git 
+        #Clone salt repo
+        git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
+        #Install Salstack
+        sudo yum install -y https://repo.saltstack.com/yum/redhat/salt-repo-latest.el7.noarch.rpm
+        sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
+        #Put custom minion config in place (for enabling masterless mode)
+        sudo cp -r /srv/aik-infrastructure/configuration_management/minion.d /etc/salt/
+        sudo sh -c "echo export BACKEND=${aws_instance.aik-portal.public_ip} >> /etc/profile"
+        echo -e 'grains:\n roles:\n  - frontend' | sudo tee /etc/salt/minion.d/grains.conf
+        ## Trigger a full Salt run
+        sudo salt-call state.apply
+        EOF
+
+    tags {
+      Name = "${var.aik-front-end-instance-name}" 
+    }
+}
+/*
 #Create AIK Launch Configuration for AIK front-end instance
 resource "aws_launch_configuration" "aik-launch-configuration" {
     name            = "${var.aik-front-end-instance-name}" 
@@ -227,7 +257,7 @@ resource "aws_launch_configuration" "aik-launch-configuration" {
         sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-minion off
         #Put custom minion config in place (for enabling masterless mode)
         sudo cp -r /srv/aik-infrastructure/configuration_management/minion.d /etc/salt/
-        sudo sh -c "echo export BACK-END-IP=${aws_instance.aik-portal.private_ip} >> /etc/profile"
+        sudo sh -c "echo export BACKEND=${aws_instance.aik-portal.public_ip} >> /etc/profile"
         echo -e 'grains:\n roles:\n  - frontend' | sudo tee /etc/salt/minion.d/grains.conf
         ## Trigger a full Salt run
         sudo salt-call state.apply
@@ -355,3 +385,4 @@ resource "aws_autoscaling_group" "aik-asg" {
         Name = "${var.aik-asg-name}"
     }
 }
+*/
