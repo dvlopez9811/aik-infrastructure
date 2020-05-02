@@ -4,19 +4,13 @@ Infraestructura para el portal AIK
 
 ### Equipo de trabajo
 
-Jorge Moreno - @Jorge-Andres-Moreno
-
 Ricardo Nuñez - @RicNuva18
 
 Sebastian Quintero - @squintero14
 
 Andres Varela - @dvlopez9811
 
-# Diseño Prototipo de Infraestructura
-
-## Diseño de la solución (Staging Environment)
-
-![Diseno Solucion Prototipo](/images/disenosolucionprot.png)
+# Diseño prototipo de Infraestructura
 
 ## Diagrama de la solución (Staging Environment)
 
