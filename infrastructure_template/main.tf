@@ -207,7 +207,7 @@ resource "aws_instance" "aik-portal" {
       Name = "${var.aik-back-end-instance-name}" 
     }
 }
-
+/*
 #Create AIK front-end EC2 instance
 resource "aws_instance" "aik-front" {
     ami                    = "${var.aik-ami-id}"
@@ -237,7 +237,8 @@ resource "aws_instance" "aik-front" {
       Name = "${var.aik-front-end-instance-name}" 
     }
 }
-/*
+*/
+
 #Create AIK Launch Configuration for AIK front-end instance
 resource "aws_launch_configuration" "aik-launch-configuration" {
     name            = "${var.aik-front-end-instance-name}" 
@@ -299,24 +300,24 @@ resource "aws_security_group" "sg-alb" {
 }
 
 #Create AIK Application Load Balancer
-resource "aws_lb" "aik-alb"{
+resource "aws_alb" "aik-alb"{
     name                = "${var.alb-name}"
-    load_balancer_type  = "${var.load_balancer_type}"
     subnets             = ["${aws_subnet.aik-public-subnet.id}","${aws_subnet.aik-second-public-subnet.id}"]
     security_groups     = ["${aws_security_group.sg-alb.id}"]
-
+    
     tags {
         Name = "${var.alb-tag-name}"
     }
 }
 
 #Create Application Load Balancer Listener
-resource "aws_lb_listener" "http" {
-    load_balancer_arn = "${aws_lb.aik-alb.arn}"
+resource "aws_alb_listener" "http" {
+    load_balancer_arn = "${aws_alb.aik-alb.arn}"
     port              = "${var.alb-port}"
     protocol          = "${var.alb-protocol}"
 
     default_action = {
+        target_group_arn ="${aws_alb_target_group.alb-target-group.arn}"
         type = "fixed-response"
 
         fixed_response = {
@@ -327,8 +328,27 @@ resource "aws_lb_listener" "http" {
     }
 }
 
+# Create Application Load Balancer Listener Rule
+resource "aws_alb_listener_rule" "listener_rule" {
+    depends_on = ["aws_alb_target_group.alb-target-group"]
+    listener_arn = "${aws_alb_listener.http.arn}"
+    priority     = 100
+    
+    condition {
+        path_pattern {
+           values = ["*"]
+        }
+    }
+    
+    action {
+        type             = "forward"
+        target_group_arn = "${aws_alb_target_group.alb-target-group.arn}"
+    }
+  
+}
+
 # Create Application Load Balancer Target Group
-resource "aws_lb_target_group" "alb-target-group" {
+resource "aws_alb_target_group" "alb-target-group" {
 
     name        = "${var.alb-target-group-name}"
     port        = "${var.server-port}"
@@ -351,38 +371,29 @@ resource "aws_lb_target_group" "alb-target-group" {
   
 }
 
-# Create Application Load Balancer Listener Rule
-resource "aws_lb_listener_rule" "listener_rule" {
-    listener_arn = "${aws_lb.aik-alb.arn}"
-    priority     = 100
-    
-    condition {
-        path_pattern {
-           values = ["*"]
-        }
-    }
-    
-    action {
-        type             = "forward"
-        target_group_arn = "${aws_lb_target_group.alb-target-group.arn}"
-    }
-  
-}
-
 #Create AIK Autoscaling Group
 resource "aws_autoscaling_group" "aik-asg" {
     launch_configuration    = "${aws_launch_configuration.aik-launch-configuration.id}"
     min_size                = "${var.min-size}"
     max_size                = "${var.max-size}"
     vpc_zone_identifier     = ["${aws_subnet.aik-public-subnet.id}","${aws_subnet.aik-second-public-subnet.id}"]
-    target_group_arns       = ["${aws_lb_target_group.alb-target-group.arn}"]
+    target_group_arns       = ["${aws_alb_target_group.alb-target-group.arn}"]
 
     lifecycle {
         create_before_destroy = true
     }
 
-    tags {
-        Name = "${var.aik-asg-name}"
+    tag = {
+
+        key = "Name"
+        value = "${var.aik-asg-name}"
+        propagate_at_launch = true
     }
 }
-*/
+
+# Create a new ALB Target Group attachment
+resource "aws_autoscaling_attachment" "asg_attachment_bar" {
+  autoscaling_group_name = "${aws_autoscaling_group.aik-asg.id}"
+  alb_target_group_arn   = "${aws_alb_target_group.alb-target-group.arn}"
+}
+
