@@ -1,18 +1,3 @@
-variable "aws-region" {
-    default = "us-west-2"
-}
-
-variable "vpc-cidr" {
-    default = "10.0.0.0/16"
-}
-
-variable "route-cidr" {
-    default = "0.0.0.0/0"
-}
-
-variable "aws-availability-zones" {
-    default = "us-west-2a,us-west-2b"
-}
 
 variable "sg-front-end" {
     default = "aik-sg-front-end"
@@ -74,60 +59,7 @@ variable "alb-protocol" {
     default = "HTTP"
 }
 
-variable "db-subnetgroup-name" {
-    default = "aik-main-subnet-group"
-}
-
-variable "rds-security-group-name" {
-    default = "aik-sg-rds"
-}
-
-variable "rds-engine" {
-    default = "mysql"
-  
-}
-
-variable "rds-engine-version" {
-    default = "5.7"
-}
-
-variable "rds-instance-class" {
-    default = "db.t2.micro"
-  
-}
-
-variable "rds-name" {
-    default = "dbAIK"
-}
-
-variable "rds-username" {
-    default = "root"
-}
-
-variable "rds-password" {
-    default = "password"
-}
-
-# Tags name
-variable "vpc-name" {
-    default = "automatizacion-igw-name-RicardoSebastianAndres"
-}
-
-variable "igw-name" {
-    default = "automatizacion-aik-vpc-RicardoSebastianAndres"
-}
-
-variable "rtb-name" {
-    default = "automatizacion-aik-rtb-RicardoSebastianAndres"
-}
-
-variable "subnet-name" {
-    default = "automatizacion-aik-subnet-RicardoSebastianAndres"
-}
-
-variable "second-subnet-name" {
-    default = "automatizacion-aik-second-subnet-RicardoSebastianAndres"
-}
+#Tags name
 
 variable "sg-name" {
     default = "automatizacion-aik-sg-back-end-RicardoSebastianAndres"
@@ -157,14 +89,20 @@ variable "aik-asg-name" {
     default = "automatizacion-asg-RicardoSebastianAndres"
 }
 
-variable "aik-subnet-rds-name" {
-    default = "automatizacion-db-subnet-group-RicardoSebastianAndres"
+#tfvar
+variable "vpc-id" {
+  
 }
 
-variable "sg-rds-tag-name" {
-    default = "automatizacion-aik-rds-sg-RicardoSebastianAndres"
+variable "aik-public-subnet" {
+  
 }
 
-variable "aik-db-name" {
-    default = "automatizacion-db-RicardoSebastianAndres"
+variable "aik-second-public-subnet" {
+  
+}
+
+
+variable "aik-db-endpoint" {
+  
 }
