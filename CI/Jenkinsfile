@@ -5,7 +5,7 @@ node {
     step([$class: 'WsCleanup'])
 
     stage "Checkout Git repo"
-    echo "Inicio checkout gir repo"
+        echo "Inicio checkout gir repo"
         checkout scm
 
     stage "Run test"
