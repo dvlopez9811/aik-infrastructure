@@ -2,6 +2,9 @@
 sudo yum update -y
 sudo yum install -y git 
 
+#Public ip back-end portal
+sudo sh -c "echo export BACKEND=${backend} >> /etc/profile"
+
 #Clone salt repo
 git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
 
@@ -11,9 +14,6 @@ sudo yum clean expire-cache;sudo yum -y install salt-minion; chkconfig salt-mini
 
 #Put custom minion config in place (for enabling masterless mode)
 sudo cp -r /srv/aik-infrastructure/configuration_management/minion.d /etc/salt/
-
-#Public ip back-end portal
-sudo sh -c "echo export BACKEND=${backend} >> /etc/profile"
 
 echo -e 'grains:\n roles:\n  - frontend' | sudo tee /etc/salt/minion.d/grains.conf
 

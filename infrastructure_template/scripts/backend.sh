@@ -2,6 +2,9 @@
  sudo yum update -y
  sudo yum install -y git 
  
+ #RDS Endpoint
+ sudo sh -c "echo export ENDPOINT=${endpoint} >> /etc/profile"
+ 
  #Clone salt repo
  git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
  
@@ -11,10 +14,7 @@
  
  #Put custom minion config in place (for enabling masterless mode)
  sudo cp -r /srv/aik-infrastructure/configuration_management/minion.d /etc/salt/
- 
- #RDS Endpoint
- sudo sh -c "echo export ENDPOINT=${endpoint} >> /etc/profile"
- 
+
  echo -e 'grains:\n roles:\n  - backend' | sudo tee /etc/salt/minion.d/grains.conf
  
  ## Trigger a full Salt run
