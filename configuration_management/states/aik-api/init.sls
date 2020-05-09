@@ -25,7 +25,8 @@ install_npm_dependencies:
        StandardError=syslog
        SyslogIdentifier=aik-app-api
        Environment=NODE_ENV=production
-
+       EnvironmentFile=/etc/environment
+       
        [Install]
        WantedBy=multi-user.target
 
