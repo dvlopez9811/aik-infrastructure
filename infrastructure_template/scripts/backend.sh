@@ -3,7 +3,7 @@
  sudo yum install -y git 
  
  #RDS Endpoint
- sudo sh -c "echo export ENDPOINT=${endpoint} >> /etc/profile"
+ sudo sh -c "echo ENDPOINT=${endpoint} >> /etc/environment"
  
  #Clone salt repo
  git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
