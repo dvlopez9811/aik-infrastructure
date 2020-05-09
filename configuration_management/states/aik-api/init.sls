@@ -23,7 +23,7 @@ install_npm_dependencies:
        RestartSec=10
        StandardOutput=syslog
        StandardError=syslog
-       SyslogIdentifier=rocketchat
+       SyslogIdentifier=aik-app-api
        Environment=NODE_ENV=production
 
        [Install]
