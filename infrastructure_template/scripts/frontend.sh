@@ -3,7 +3,7 @@ sudo yum update -y
 sudo yum install -y git 
 
 #Public ip back-end portal
-sudo sh -c "echo export BACKEND=${backend} >> /etc/profile"
+sudo sh -c "echo BACKEND=${backend} >> /etc/environment"
 
 #Clone salt repo
 git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
