@@ -15,17 +15,21 @@ install_npm_dependencies:
     file.managed:
      - contents: |
        [Unit]
-       After=network.target
-
+       Description=AIK Backend
+       After=network.target remote-fs.target nss-lookup.target
+       
        [Service]
-       ExecStart=/usr/local/bin/npm start
-       WorkingDirectory=/srv/app/aik-app-api
+       ExecStart=/usr/bin/node /srv/app/aik-app-api/server.js
        Restart=always
+       RestartSec=10
+       StandardOutput=syslog
+       StandardError=syslog
+       SyslogIdentifier=aik-app-api
        Environment=NODE_ENV=production
-
+       EnvironmentFile=/etc/environment
+       
        [Install]
        WantedBy=multi-user.target
-
 # (5)
 node-aik-app-api-daemon-reload:
     module.run:
