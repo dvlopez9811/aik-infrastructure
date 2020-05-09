@@ -1,16 +1,52 @@
+# (1)
+/var/sites/aik-portal:
+  file.directory: []
 
-include:
-    - nodejs
+# (2)
+aik-portal-repo:
+  git.latest:
+    - name: https://github.com/dvlopez9811/aik-portal-backend
+    - branch: master
+    - target: /var/sites/aik-portal
+    - require:
+      - file: /var/sites/aik-portal
 
-aik-ui:
-    git.latest:
-     - name: https://github.com/dvlopez9811/aik-portal-backend
-     - target: /srv/app
+# (3)
+aik-portal-npm-install:
+  cmd.wait:
+    - name: 'npm install'
+    - cwd: /var/sites/aik-portal
+    - watch:
+      - git: aik-portal-repo
 
-install_npm_dependencies:
-    npm.bootstrap:
-      - name: /srv/app/aik-app-api
+# (4)
+/etc/systemd/system/node-aik-portal.service:
+  file.managed:
+    - contents: |
+      [Unit]
+      After=network.target
 
-run_aik_portal_frontend:
-    cmd.run:
-      - name: "node /srv/app/aik-app-api/server.js" 
+      [Service]
+      ExecStart=/usr/local/bin/npm start
+      WorkingDirectory=/var/sites/aik-portal
+      Restart=always
+      Environment=NODE_ENV=production
+
+      [Install]
+      WantedBy=multi-user.target
+
+# (5)
+node-aik-portal-daemon-reload:
+  module.run:
+    - name: service.systemctl_reload
+    - watch:
+      - file: /etc/systemd/system/node-aik-portal.service
+
+# (6)
+node-aik-portal-service:
+  service.running:
+    - name: node-aik-portal
+    - enable: True
+    - watch:
+      - git: aik-portal-repo
+      - file: /etc/systemd/system/node-aik-portal.service
