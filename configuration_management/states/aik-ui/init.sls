@@ -11,23 +11,23 @@ install_npm_dependencies:
       - name: /srv/app/aik-app-ui
 # (4)
 /etc/systemd/system/aik-app-ui.service:
-  file.managed:
+    file.managed:
     - contents: |
-       [Unit]
-       Description=AIK Backend
-       After=network.target remote-fs.target nss-lookup.target
-       [Service]
-       ExecStart=/usr/bin/node /srv/app/aik-app-ui/server.js
-       Restart=always
-       RestartSec=10
-       StandardOutput=syslog
-       StandardError=syslog
-       SyslogIdentifier=aik-app-ui
-       Environment=NODE_ENV=production
-       EnvironmentFile=/etc/environment
+      [Unit]
+      Description=AIK Backend
+      After=network.target remote-fs.target nss-lookup.target
+      [Service]
+      ExecStart=/usr/bin/node /srv/app/aik-app-ui/server.js
+      Restart=always
+      RestartSec=10
+      StandardOutput=syslog
+      StandardError=syslog
+      SyslogIdentifier=aik-app-ui
+      Environment=NODE_ENV=production
+      EnvironmentFile=/etc/environment
        
-       [Install]
-       WantedBy=multi-user.target
+      [Install]
+      WantedBy=multi-user.target
 
 # (5)
 aik-app-ui-daemon-reload:
