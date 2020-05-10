@@ -6,7 +6,7 @@ sudo yum install -y git
 sudo sh -c "echo BACKEND=${backend} >> /etc/environment"
 
 #Clone salt repo
-git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
+sudo git clone -b development https://github.com/dvlopez9811/aik-infrastructure /srv/aik-infrastructure
 
 #Install Salstack
 sudo yum install -y https://repo.saltstack.com/yum/redhat/salt-repo-latest.el7.noarch.rpm
